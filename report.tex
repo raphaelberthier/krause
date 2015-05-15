@@ -1,10 +1,14 @@
-﻿\documentclass[a4paper,10pt]{report}
+\documentclass[a4paper,10pt]{report}
 \usepackage[utf8]{inputenc}
+\usepackage[francais]{babel}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{xfrac}
+
+\usepackage{type1cm}
 
 \newtheorem{theorem}{Théorème}
 % Title Page
@@ -20,7 +24,7 @@
 
 \section{Krause on the circle}
 
-Pour nous donner des suggestions le professeur nous a envoyé une présentation qu'il avait fait pour synthétiser et commenter l'article ``On Krause’s multi-agent consensus model with state-dependent connectivity'' de Vincent D. Blondel, Julien M. Hendrickx et John N. Tsitsiklis. L'argument nous intéressait et nous avons donc décidé de lire l'article entier en original pour mieux comprendre le modèle, les problématiques et les approches proposées. Nous y avons trouvé des nouveaux problèmes ouverts, en addition de ceux que le professeur avait écrit dans la présentation. En particulier dans une section de commentaire les auteurs disaient qu'un résultat qu'il venaient de prouver (la convergence au clusters séparés d'au moins 1) n'est pas vrai en général. Ils donnaient comme contre-exemple le cas d'agents placés sur le cercle et ils disaient que dans ce cas, même la simple convergence n’était pas prouvée. Ainsi nous avons décidé de travailler sur ce problème.
+Pour nous donner des suggestions le professeur nous a envoyé une présenta\-tion qu'il avait fait pour synthétiser et commenter l'article ``On Krause’s multi-agent consensus model with state-dependent connectivity'' de Vincent D. Blondel, Julien M. Hendrickx et John N. Tsitsiklis. L'argument nous intéressait et nous avons donc décidé de lire l'article entier en original pour mieux comprendre le modèle, les problématiques et les approches proposées. Nous y avons trouvé des nouveaux problèmes ouverts, en addition de ceux que le professeur avait écrit dans la présentation. En particulier dans une section de commentaire les auteurs disaient qu'un résultat qu'il venaient de prouver (la convergence au clusters séparés d'au moins 1) n'est pas vrai en général. Ils donnaient comme contre-exemple le cas d'agents placés sur le cercle et ils disaient que dans ce cas, même la simple convergence n’était pas prouvée. Ainsi nous avons décidé de travailler sur ce problème.
 
 Au tout début nous avons écrit un simulateur en Python, pour nous aider a mieux comprendre les différentes situations qui peuvent se présenter. On y a estime la fréquence a laquelle ce genre de situation apparaît et comment elle évolue en fonction du rayon du cercle et de la distance d'influence. Cela nous a permis de bien voir les premiers résultats simples : la distribution équidistante (comme les racines $n$-iemes de l’unité dans le plan complexe) est la plus simple qui ne donne pas une convergence ``standard''. Cependant il y en a de plus complexes. Et dès qu'il y a un ``trou'' de largeur au moins 1 on peut se ramener au cas de la droite (en ``coupant'' le cercle) et donc on a une convergence standard.
 
@@ -56,25 +60,35 @@ Par contre si d'un certain point en avant la relation d'influence arrete de chan
 
 \section{Essais pratiques}
 
-Nous avons fait un programme pour calculer puis afficher les opinions au cours du temps, ces opinion étaient un entier entre 0 et 1. Nous avons testé selon plusieurs modèles : (on note d la distance d'opinion entre la personne influencée et la personne influente)
-1-Créneau : une personne écoute les personnes d'opinion qui diffère de moins de D € R, toutes avec le même coeff, et pas les autres. Autrement dit la fonction qui donne le coefficient de prise en compte d'opinion en fonction de la distance d est un créneau de largeur 2D.
-2-Inverse : la fonction coeff(d) est 1/(1+d)
-3-Inverse au carré : la fonction coeff(d) est 1/(1+d^2)
-4-Inverse au carré bis : la fonction coeff(d) est minimum(1*d^2, D) et D en d=0
-5-Gaussien : la fonction coeff(d) est une gaussienne de variance D € R
+Nous avons fait un programme pour calculer puis afficher les opinions au cours du temps, ces opinion étaient un entier entre 0 et 1. Nous avons testé selon plusieurs modèles : (on note $d$ la distance d'opinion entre la personne influencée et la personne influente)
+\begin{enumerate}
+\item Créneau : une personne écoute les personnes d'opinion qui diffère de moins de $D \in \mathbb{R}$, toutes avec le même coeff, et pas les autres. Autrement dit la fonction qui donne le coefficient de prise en compte d'opinion en fonction de la distance d est un créneau de largeur 2D.
 
-Nous avons bien sûr fait varié D et regardé les différences obtenues. Assez logiquement, plus D est grand moins il y a d'opinions finales.
+\item Inverse : la fonction $\operatorname{coeff}(d)$ est $\sfrac{1}{(1+d)}$.
 
-Certaines de ces fonctions faisaient converger très rapidement (ex : créneau vers t~5) alors que d'autres beaucoup plus lentement (inverse au carre vers t~30000). C'est pourquoi nous avons essayé plusieurs fonctions d'affichage :
-1-affichage linéaire : la valeurs de l'opinion en ordonnée et le temps en abscisse, le temps ayant pour échelle 1pixel/1unité de temps jusqu'à 100pixels/1unité de temps.
-2-affichage linéaire cyclique : comme l'affichage linéaire, sauf qu'une fois arrivé au bout de la fenetre on efface tout puis on affiche la suite, etc.
-3-affichage logarithmique : l'abscisse est log(t), c'est à dire qu'une valeur au temps t est affiché sur le pixel d'abscisse log(t).
+\item Inverse au carré : la fonction $\operatorname{coeff}(d)$ est $\sfrac{1}{(1+d^2)}$.
 
-Face à la rapidité de la convergence de certains modèles, nous avons implémenté l'inertie : plus cette inertie est importante, moins l'opinion de la personne change. C'est à dire que la personne prend en compte son opinion avec un coeff proportionnel à l'inertie. Cela permet de ralentir la convergence et d'obtenir des courbes plus jolies.
+\item Inverse au carré bis : la fonction $\operatorname{coeff}(d)$ est $\min(\sfrac{1}{d^2}, D)$ et $D$ en $d=0$.
+
+\item Gaussien : la fonction $\operatorname{coeff}(d)$ est une gaussienne de variance $D \in \mathbb{R}$.
+\end{enumerate}
+
+Nous avons bien sûr fait varié $D$ et regardé les différences obtenues. Assez logiquement, plus $D$ est grand moins il y a d'opinions finales.
+
+Certaines de ces fonctions faisaient converger très rapidement (ex : créneau vers $t \sim 5$) alors que d'autres beaucoup plus lentement (inverse au carre vers $t \sim 30000$). C'est pourquoi nous avons essayé plusieurs fonctions d'affichage :
+\begin{enumerate}
+\item affichage linéaire : la valeurs de l'opinion en ordonnée et le temps en abscisse, le temps ayant pour échelle 1pixel/1unité de temps jusqu'à 100pixels/1unité de temps.
+
+\item affichage linéaire cyclique : comme l'affichage linéaire, sauf qu'une fois arrivé au bout de la fenetre on efface tout puis on affiche la suite, etc.
+
+\item affichage logarithmique : l'abscisse est $\log(t)$, c'est à dire qu'une valeur au temps $t$ est affiché sur le pixel d'abscisse $\log(t)$.
+\end{enumerate}
+
+Face à la rapidité de la convergence de certains modèles, nous avons implé\-men\-té l'inertie : plus cette inertie est importante, moins l'opinion de la personne change. C'est à dire que la personne prend en compte son opinion avec un coeff proportionnel à l'inertie. Cela permet de ralentir la convergence et d'obtenir des courbes plus jolies.
 Nous avons aussi essayé une version où l'inertie change selon les personnes.
 
 Nous avons ensuite ajouté du bruit, ie une personne a une opinion qui monte ou descend aléatoirement (en plus du changement d'opinion dû aux autres personnes) à chaque unité de temps. Nous avons mis un bruit à peu près gaussien. Ainsi nous obtenons selon les modèles une ou plusieures opinions principales qui bougent légèrement, qui sont larges avec un gros bruit et fines avec un petit bruit. Celles-ci se rejoignent parfois. De plus avec un bruit suffisament fort certaines personnes sortent des idées principales. Avec un bruit très fort on observe plus rien; et entre les deux on observe des idées principales qui bougent beaucoup, se rejoignent, se divisent, des trous d'opinions qui se créent puis disparaisent : c'est assez proche de la réalité.
-Nous avons rencontré un problème dû à la fonction rand() en c : en utilisant beaucoup cette fonction, nous obtenous de l'aléatoire qui se répète, et du coup des opinions de personnes qui montent et descendent de la même manière.
+Nous avons rencontré un problème dû à la fonction \texttt{rand()} en c : en utilisant beaucoup cette fonction, nous obtenous de l'aléatoire qui se répète, et du coup des opinions de personnes qui montent et descendent de la même manière.
 
 Nous avons ensuite essayé une version où les valeurs des opinions sont sur un cercle, cela n'a pas changé grand chose.
 
