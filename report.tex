@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt]{report}
+﻿\documentclass[a4paper,10pt]{report}
 \usepackage[utf8]{inputenc}
 
 \usepackage{amsmath}
@@ -54,6 +54,31 @@ En suite nous avons aborde le theoreme principal : il y a toujours convergence, 
 
 Par contre si d'un certain point en avant la relation d'influence arrete de changer on peut bien considerer sa matrice de transition. Elle est une matrice stochastique, parce que la somme des poids des aretes qui entrent dans un agent vaut 1 (les $n$ aretes ont toutes le meme poids, qui est $\frac{1}{n}$). Les aretes sortant, au contraire, n'ont pas forcement somme 1. Donc, meme si elle est stochastique, on ne peut pas l'utiliser pour modeliser une chaine de Markov parce que on l'utilise ``dans le mauvais sens'' (si on la voit comme stochastique par colonne on la multipliquerait par un vecteur ligne, et l'envers). En tout cas, en etant stochastique, nous sachons que sa puissance $n$-ieme a une limite, et donc de cela nous deduisons que aussi les positions des agents converge (le vecteur qui les decrit est obtenu de la multiplication de cette matrice et du vecteur des positions a l'instant auquel la relation d'influence s'est stabilise).
 
+\section{Essais pratiques}
+
+Nous avons fait un programme pour calculer puis afficher les opinions au cours du temps, ces opinion étaient un entier entre 0 et 1. Nous avons testé selon plusieurs modèles : (on note d la distance d'opinion entre la personne influencée et la personne influente)
+1-Créneau : une personne écoute les personnes d'opinion qui diffère de moins de D € R, toutes avec le même coeff, et pas les autres. Autrement dit la fonction qui donne le coefficient de prise en compte d'opinion en fonction de la distance d est un créneau de largeur 2D.
+2-Inverse : la fonction coeff(d) est 1/(1+d)
+3-Inverse au carré : la fonction coeff(d) est 1/(1+d^2)
+4-Inverse au carré bis : la fonction coeff(d) est minimum(1*d^2, D) et D en d=0
+5-Gaussien : la fonction coeff(d) est une gaussienne de variance D € R
+
+Nous avons bien sûr fait varié D et regardé les différences obtenues. Assez logiquement, plus D est grand moins il y a d'opinions finales.
+
+Certaines de ces fonctions faisaient converger très rapidement (ex : créneau vers t~5) alors que d'autres beaucoup plus lentement (inverse au carre vers t~30000). C'est pourquoi nous avons essayé plusieurs fonctions d'affichage :
+1-affichage linéaire : la valeurs de l'opinion en ordonnée et le temps en abscisse, le temps ayant pour échelle 1pixel/1unité de temps jusqu'à 100pixels/1unité de temps.
+2-affichage linéaire cyclique : comme l'affichage linéaire, sauf qu'une fois arrivé au bout de la fenetre on efface tout puis on affiche la suite, etc.
+3-affichage logarithmique : l'abscisse est log(t), c'est à dire qu'une valeur au temps t est affiché sur le pixel d'abscisse log(t).
+
+Face à la rapidité de la convergence de certains modèles, nous avons implémenté l'inertie : plus cette inertie est importante, moins l'opinion de la personne change. C'est à dire que la personne prend en compte son opinion avec un coeff proportionnel à l'inertie. Cela permet de ralentir la convergence et d'obtenir des courbes plus jolies.
+Nous avons aussi essayé une version où l'inertie change selon les personnes.
+
+Nous avons ensuite ajouté du bruit, ie une personne a une opinion qui monte ou descend aléatoirement (en plus du changement d'opinion dû aux autres personnes) à chaque unité de temps. Nous avons mis un bruit à peu près gaussien. Ainsi nous obtenons selon les modèles une ou plusieures opinions principales qui bougent légèrement, qui sont larges avec un gros bruit et fines avec un petit bruit. Celles-ci se rejoignent parfois. De plus avec un bruit suffisament fort certaines personnes sortent des idées principales. Avec un bruit très fort on observe plus rien; et entre les deux on observe des idées principales qui bougent beaucoup, se rejoignent, se divisent, des trous d'opinions qui se créent puis disparaisent : c'est assez proche de la réalité.
+Nous avons rencontré un problème dû à la fonction rand() en c : en utilisant beaucoup cette fonction, nous obtenous de l'aléatoire qui se répète, et du coup des opinions de personnes qui montent et descendent de la même manière.
+
+Nous avons ensuite essayé une version où les valeurs des opinions sont sur un cercle, cela n'a pas changé grand chose.
+
+Enfin nous avons rajouté quelques petites choses, comme le choix des couleurs pour afficher les opinions, le choix des opinions au départ (aléatoire, uniformément réparti, tous au centre, ...) ou encore l'essai d'une mesure de 'chaos' qui est la somme pour toutes les personnes de la somme des coefficient d'influence.
 
 
 \end{document}          
