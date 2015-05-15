@@ -1,0 +1,59 @@
+\documentclass[a4paper,10pt]{report}
+\usepackage[utf8]{inputenc}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Théorème}
+% Title Page
+\title{}
+\author{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+
+\section{Krause on the circle}
+
+Pour nous donner des suggestions le professeur nous a envoyé une présentation qu'il avait fait pour synthétiser et commenter l'article ``On Krause’s multi-agent consensus model with state-dependent connectivity'' de Vincent D. Blondel, Julien M. Hendrickx et John N. Tsitsiklis. L'argument nous intéressait et nous avons donc décidé de lire l'article entier en original pour mieux comprendre le modèle, les problématiques et les approches proposées. Nous y avons trouvé des nouveaux problèmes ouverts, en addition de ceux que le professeur avait écrit dans la présentation. En particulier dans une section de commentaire les auteurs disaient qu'un résultat qu'il venaient de prouver (la convergence au clusters séparés d'au moins 1) n'est pas vrai en général. Ils donnaient comme contre-exemple le cas d'agents placés sur le cercle et ils disaient que dans ce cas, même la simple convergence n’était pas prouvée. Ainsi nous avons décidé de travailler sur ce problème.
+
+Au tout début nous avons écrit un simulateur en Python, pour nous aider a mieux comprendre les différentes situations qui peuvent se présenter. On y a estime la fréquence a laquelle ce genre de situation apparaît et comment elle évolue en fonction du rayon du cercle et de la distance d'influence. Cela nous a permis de bien voir les premiers résultats simples : la distribution équidistante (comme les racines $n$-iemes de l’unité dans le plan complexe) est la plus simple qui ne donne pas une convergence ``standard''. Cependant il y en a de plus complexes. Et dès qu'il y a un ``trou'' de largeur au moins 1 on peut se ramener au cas de la droite (en ``coupant'' le cercle) et donc on a une convergence standard.
+
+Pour continuer a nous familiariser avec le modèle, cette fois d'un point de vue théorique, nous avons essayé de démontrer un résultat ``préliminaire : l'ensemble des situations initiales qui conduisent a une convergence non standard n'est pas de mesure nulle (en supposant la distribution de probabilité obtenue en tirant uniformément et indépendamment chaque agent). Cela nous a garantis que les situations que nous voulions analyser ne sont pas négligeable.
+
+Nous sommes partis d'une des situations simples que nous avions trouvé, les agent équidistants, et nous avons ajouté du ``bruit''. Nous avons donc prouvé le théorème suivant:
+\begin{theorem}
+Considérons $n$ agents placés sur le cercle de rayon 1 et soit $d$ la distance d'influence. La position de l'agent $i$ est $x_i = r_i + b_i$ où $r_i = \frac{i}{n} 2 \pi$ et $b_i \in [-\epsilon, +\epsilon]$. Alors la convergence sera non standard.
+\end{theorem}
+
+Nous avons supposé que le bruit n'arrive pas a changer les relations d'influence entre les agents. On peut formaliser cela comme une contrainte sur $\epsilon$ : pour aucun $k$ on peut avoir $\frac{k}{n} 2 \pi - \epsilon < d < \frac{k}{n} 2 \pi + \epsilon$.
+
+Après des essais numériques nous nous sommes convaincus que une situation de ce type converge vers une distribution équidistante, ou l'agent $i$ est a la position $x_i + \bar b$, avec $\bar b = \frac{1}{n} \sum_{j=1}^n b_j$. Nous avons trouvé une preuve de ce résultat on utilisant les chaînes de Markov :
+
+\begin{proof}
+A toute étape chaque agent est influencé par autant d'agents a gauche que a droite. Soit $k$ ce nombre. Donc a la deuxième étape
+\begin{equation*}
+\begin{split}
+x'_i &= x_i + \frac{1}{2k+1} \left( \sum_{j=1}^k (x_{i-j} - x_i) + \sum_{j=1}^k (x_{i+j} - x_i) \right) \\
+     &= r_i + b_i + \frac{1}{2k+1} \left( \sum_{j=1}^k (r_{i-j} + b_{i-j} - r_i - b_i) + \sum_{j=1}^k (r_{i+j} + b_{i+j} - r_i - b_i) \right) \\
+     &= r_i + b_i + \frac{1}{2k+1} \left( \sum_{j=1}^k (r_i - \frac{j}{n}2 \pi + b_{i-j} - r_i - b_i) + \sum_{j=1}^k (r_i + \frac{j}{n}2 \pi + b_{i+j} - r_i - b_i) \right) \\
+     &= r_i + b_i + \frac{1}{2k+1} \left( \sum_{j=1}^k (b_{i-j} - b_i) + \sum_{j=1}^k (b_{i+j} - b_i) \right) \\
+     &= r_i + \frac{1}{2k+1} \left( \sum_{j=1}^k b_{i-j} + b_i + \sum_{j=1}^k b_{i+j} \right) \\
+\end{split}
+\end{equation*}
+
+On voit donc que le nouveau bruit de l'agent $i$ est la moyenne des bruits des agents voisins. En itérant le raisonnement on obtient qu'a tout moment le bruit d'un agent est une combinaison linéaire des bruits initiales de tous les agents. On peut donc fixer un $j$ et voir comment évoluent les coefficients de $b_j$ dans les combinaisons linéaires de tous les agents. Au début ils sont tous zéro sauf celui de l'agent $j$ lui-même. A l’étape suivante on voit que les $2k+1$ voisins de $j$ (y compris $j$) ont ce coefficient a $\frac{1}{2k+1}$. La somme donc reste 1. En fait c'est une propriété qui vaut pour toute étape, car chacun des $2k+1$ voisins d'un agent a lui aussi $2k+1$ voisins. Cela nous permet de considérer ces coefficients comme une distribution de probabilite et ensuite de voir l'evolution du systeme comme une chaine de Markov. Cette chaine est irreductible, aperiodique et, en etant ses etats finis, recurrente positive. Elle converge donc vers une distribution stationnaire, qui est la distribution uniforme. Le bruit initial de l'agent $j$ donc se disperse en egal misure entre tous les agents. A la limite donc tous les agents auront le meme bruit qui sera la moyenne des bruits initiaux.
+\end{proof}
+
+En suite nous avons aborde le theoreme principal : il y a toujours convergence, soit standard soit non standard. Nous ne pouvions pas utiliser les techniques du theoreme precedent sans modification parce que plusieurs hypotheses n'etaient plus valides. En particulier la somme des coefficients du contribut de l'agent $j$ dans la position des autres agents ne reste pas 1. Et aussi la relation d'influence peut changer a chaque etape, vu que des agents peuvent s'approcher o s'eloigner et donc entrer ou sortir l'un de l'influence de l'autre. Cela dit que la chaine de Markov ne serait pas homogène.
+
+Par contre si d'un certain point en avant la relation d'influence arrete de changer on peut bien considerer sa matrice de transition. Elle est une matrice stochastique, parce que la somme des poids des aretes qui entrent dans un agent vaut 1 (les $n$ aretes ont toutes le meme poids, qui est $\frac{1}{n}$). Les aretes sortant, au contraire, n'ont pas forcement somme 1. Donc, meme si elle est stochastique, on ne peut pas l'utiliser pour modeliser une chaine de Markov parce que on l'utilise ``dans le mauvais sens'' (si on la voit comme stochastique par colonne on la multipliquerait par un vecteur ligne, et l'envers). En tout cas, en etant stochastique, nous sachons que sa puissance $n$-ieme a une limite, et donc de cela nous deduisons que aussi les positions des agents converge (le vecteur qui les decrit est obtenu de la multiplication de cette matrice et du vecteur des positions a l'instant auquel la relation d'influence s'est stabilise).
+
+
+
+\end{document}          
