@@ -1,3 +1,4 @@
+
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[francais]{babel}
@@ -7,6 +8,7 @@
 \usepackage{amssymb}
 \usepackage{amsthm}
 \usepackage{xfrac}
+\usepackage{graphicx}
 
 \usepackage{type1cm}
 
@@ -20,35 +22,78 @@
 
 \section{Swarm autohealing}
 
-Au tout début nous étions intéressés par le problème de swarm autohealing, présenté au premier cours par Remi Geraud. Il s'agissait de modéliser le comportement d'un ensemble d'agents dans un espace qui, en conditions normales, produisent du profit mais qui peuvent être compromis et commencer à coûter. En ce cas les agents voisins peuvent organiser un vote pour décider de tuer l'agent compromis ou de le réparer, avec des coûts liées a chaque option.
+Au tout début nous étions intéressés par le problème de swarm autohealing, présenté au premier cours par Remi Geraud. Il s'agissait de modéliser le comportement d'un ensemble d'agents dispersés en espace qui, en conditions normales, produisent du profit pour la communauté. Cependant, un agent peut être compromis et commence à coûter. En ce cas ses agents voisins organisent un vote pour décider de tuer l'agent compromis ou de le réparer, avec des coûts liées à chaque option.
 
-Le défi principal de ce problème était que c’était à nous de concevoir et proposer une formalisation appropriée. Nous avons donc commencé avec le cas le plus simple, où les agent ont information complète sur l’état de tout le système, sur le profit et le coût dans les différents régions de l'espace, sur le mouvement futur des autres agents. Nous avons étudié le cas d'un espace fini et d'un espace continu. Dans les deux, en fait, la décision optimale des agents voisins pendant le vote était facile à déterminer : il faillait simplement estimer le gain futur de l'agent et le comparer avec le coût du sauvetage. Le calcul consiste en la résolution d'un système linéaire dans le cas discret et d'une [qu'est-ce que il était ? un intégral ou une équation aux dérivées partielles ?] dans le cas continu.
+Le défi principal de ce problème était que c’était à nous de concevoir et proposer une formalisation appropriée. Nous avons donc commencé avec le cas le plus simple, où les agents ont information complète sur l’état de tout le système, sur le profit et le coût dans les différents régions de l'espace, sur le mouvement futur des autres agents. Nous avons étudié les cas d'un espace fini et d'un espace continu. En fait, la décision optimale des agents voisins pendant le vote était facile à déterminer : il fallait simplement estimer le gain futur de l'agent et le comparer avec le coût du sauvetage. Le calcul consiste en la résolution d'un système linéaire dans le cas discret et d'une équation intégrale dans le cas continu.
 
-Même la généralisation à l'information incomplète ne nous a apporte aucun résultat d’intérêt : le mieux que nous avons trouvé était de laisser estimer à chaque agent le gain en se basant sur les information qu'il possédait. La seule astuce dans le problème était de ne pas faire choisir aux agent l'option la plus profitable mais de faire leur choisir aléatoirement entre les options possibles en utilisant le gain pour déterminer la probabilité de chaque option : cela évite un ``effet seuil''.
+Généraliser le problème à une modélisation où les agents ne disposent que d'une information partielle s'est révélé beaucoup plus ardu. Cependant, cette situation est au centre de l'intérêt du problème de swarm autohealing. En effet, les agents n'ont accès qu'à une information locale, ce qui fait qu'ils ne connaissent pas l'ensemble du système - ni son évolution à fortiori. Par ailleurs, c'est pour cela que les prises de décision des différents agents diffèrent : ceci constitue tout l'intérêt de la phase de vote des agents. Il était donc essentiel que notre modélisation du problème prenne en compte la localité de l'information. 
 
-Nous avons donc décidé d'abandonner cette direction et de nous dédier à une piste différente.
+Cependant, nous n'avons abouti à aucun résultat d'intérêt avec ce modèle. Il nous a semblé que le mieux que nous puissions faire était de procéder comme dans le cas à information totale, mais en acceptant le manque d'information qui engendre une part d'aléatoire dans le problème. Pour être précis, un agent doit estimer les informations qui lui manquent, pour ensuite prévoir si il est avantageux de sauver un agent corrompu ou non. 
+
+Remarquons cependant que puisque ce mode de prise de décision est dangereux, puisque une petite erreur dans l'estimation des paramètres inconnus peut avoir de grandes conséquences : tuer plutôt que sauver. Pour y remédier, on peut rendre les décisions des agents aléatoires : tuer avec probabilité $p$, sauver avec probabilité $1-p$, où $p$ dépend des paramètres (estimés) du système. Cela permet d'éviter un ``effet seuil'' où de petites variations des paramètres auraient de grandes conséquences.  
+
+Mais, n'étant pas plus inspirés par ce modèle, nous avons donc décidé d'abandonner cette direction et de nous dédier à un problème différente.
 
 \section{Modèle de Krause pour la dynamique d'opinion}
 
-Dans le modèle de Krause on étudie des agents (normalement un nombre fini, mais ils existent des généralisations à un nombre infini, dénombrable ou continu) qui sont caractérisés par leur opinion, qui est une valeur dans un certain espace (normalement un intervalle borné de $\mathbb{R}$). Le système évolue à étapes. A chaque étape les agents se déplacent (tous au même temps) vers la moyenne des positions des agents qui leur sont proches, c'est-à-dire qui ont une distance inférieure à 1. Formellement on pourrait dire que $x_i^{(t+1)} = \frac{1}{|N_d^{(t)}(i)|} \sum_{j \in N_d^{(t)}(i)} x_j^{(t)}$ où $N_d^{(t)}(i) = \{j \text{ t.q. } |x_j^{(t)} - x_i^{(t)}| < d\}$.
+Dans le modèle de Krause on étudie des agents (normalement un nombre fini, mais ils existent des généralisations à un nombre infini, dénombrable ou continu) qui sont caractérisés par leur opinion, qui est une valeur dans un certain espace métrique (normalement un intervalle borné de $\mathbb{R}$). Le système évolue à temps discret. A chaque étape tous les agents se déplacent en même temps vers la moyenne des positions des agents qui leur sont proches, c'est-à-dire qui ont une distance inférieure à 1. Formellement, dans le cas le plus simple d'un nombre fini d'opinions réelles, on pourrait dire que 
+\begin{equation}
+x_i^{(t+1)} = \frac{1}{|N_d^{(t)}(i)|} \sum_{j \in N_d^{(t)}(i)} x_j^{(t)}
+\end{equation}
+où $N_d^{(t)}(i) = \{j \text{ t.q. } |x_j^{(t)} - x_i^{(t)}| < d\}$.
+Cette équation vise à modéliser le phénomène d'influence suivant : un agent est influencé par les opinions des autres agents, sous réserve qu'ils aient une opinion pas trop différente de la sienne. Autrement dit, nous sommes hermétiques aux gens qui pensent très différemment de nous. En revanche, lorsque quelqu'un pense légèrement différemment de nous, nous modifions notre opinion en prenant en compte la sienne. 
 
 \subsection{Aperçu de notre travail théorique}
 
-Pour nous donner des suggestions le professeur nous a envoyé une présenta\-tion qu'il avait fait pour synthétiser et commenter l'article ``On Krause’s multi-agent consensus model with state-dependent connectivity'' de Vincent D. Blondel, Julien M. Hendrickx et John N. Tsitsiklis. L'argument nous intéressait et nous avons donc décidé de lire l'article entier en original pour mieux comprendre le modèle, les problématiques et les approches proposées.
+Pour nous donner des suggestions, le professeur nous a envoyé une présenta\-tion qu'il avait fait pour synthétiser et commenter l'article ``On Krause’s multi-agent consensus model with state-dependent connectivity'' de Vincent D. Blondel, Julien M. Hendrickx et John N. Tsitsiklis. Le thème nous intéressait et nous avons donc décidé de lire l'article original en entier pour mieux comprendre le modèle, les problématiques et les approches proposées.
 
-Un premier aspect que nous avons étudié a été la distribution des instants auxquels deux groupes d'agents s'unifient. Pour cela nous avons écrit un simulateur spécialisé et optimisé pour exécuter un grand nombre de fois des  simulations à partir d'une situation aléatoire et obtenir des données statistiques. En représentant ces graphiques nous n'avons trouvé aucun comportement facilement descriptible et donc nous avons abandonné cette piste.
+Un premier aspect que nous avons étudié a été la distribution des instants auxquels deux groupes d'agents s'unifient. Pour cela nous avons écrit un simulateur spécialisé et optimisé pour exécuter un grand nombre de fois des simulations à partir d'une situation aléatoire et obtenir des données statistiques. En représentant ces graphiques nous n'avons trouvé aucun comportement facilement descriptible et donc nous avons abandonné cette piste.
 
-[Raphael : mets ici une description de ton premier travail sur le modèle de Krause]
+Cependant, nous avons trouvé dans l'article de nouveaux problèmes ouverts, qui viennent compléter ceux que le professeur a écrit dans sa présentation. En particulier dans une section de commentaire les auteurs disent qu'un résultat qu'il venaient de prouver (la convergence au clusters séparés d'au moins $d$) n'est pas vrai dans n'importe quel espace. Ils donnaient comme contre-exemple le cas d'agents placés sur le cercle et ils disaient que dans ce cas, même la simple convergence n’était pas prouvée. Ainsi nous avons décidé de travailler sur ce problème.
 
-Nous y avons trouvé des nouveaux problèmes ouverts, en addition de ceux que le professeur avait écrit dans la présentation. En particulier dans une section de commentaire les auteurs disaient qu'un résultat qu'il venaient de prouver (la convergence au clusters séparés d'au moins $d$) n'est pas vrai en général. Ils donnaient comme contre-exemple le cas d'agents placés sur le cercle et ils disaient que dans ce cas, même la simple convergence n’était pas prouvée. Ainsi nous avons décidé de travailler sur ce problème.
+Au tout début nous avons écrit un simulateur en Python, pour nous aider à mieux comprendre les différentes situations qui peuvent se présenter. Nous avons distingué deux modes de convergence : 
 
-Au tout début nous avons écrit un simulateur en Python, pour nous aider à mieux comprendre les différentes situations qui peuvent se présenter. On y a estime la fréquence à laquelle ce genre de situation apparaît et comment elle évolue en fonction du rayon du cercle et de la distance d'influence. Cela nous a permis de bien voir les premiers résultats simples : la distribution équidistante (comme les racines $n$-iemes de l’unité dans le plan complexe) est la plus simple qui ne donne pas une convergence ``standard''. Cependant il y en a de plus complexes. Et dès qu'il y a un ``trou'' de largeur au moins 1 on peut se ramener au cas de la droite (en ``coupant'' le cercle) et donc on a une convergence standard.
+\begin{itemize}
+\item Si lors qu'un des étapes de la convergence, il se forme un ``trou'' de taille au moins $d$ entre deux agents successifs, alors ce trou ne peut plus se réduire. Puisque les deux agents successifs ne sont plus en influence, tout se passe alors comme si on était ramené au cas réel, en ``coupant'' le cercle au niveau du trou. Le phénomène est alors connu, et on a convergence vers des clusters séparés par une distance au moins $d$. On donne dans les figurs \ref{randombefore}, \ref{random2} et \ref{random5} une illustration de ce phénomène, sur le cercle de rayon $1$, avec $d = 1$.
 
-Pour continuer a nous familiariser avec le modèle, cette fois d'un point de vue théorique, nous avons essayé de démontrer un résultat ``préliminaire'' : l'ensemble des situations initiales qui conduisent à une convergence non standard n'est pas de mesure nulle (en supposant la distribution de probabilité obtenue en tirant uniformément et indépendamment chaque agent). Cela nous a garantis que les situations que nous voulions analyser ne sont pas négligeables.
+\begin{figure}
+\center
+\includegraphics[scale=0.5]{randombefore.png}
+\caption{Distribution initiale. Tous les agents sont à distance inférieure ou égale à $d$.}
+\label{randombefore}
+\center
+\includegraphics[scale=0.5]{random2.png}
+\caption{Après deux itérations. Des trous commencent à se former à cause des différences de concentration en agents le long du cercle.}
+\label{random2}
+\center
+\includegraphics[scale=0.5]{random5.png}
+\caption{Après cinq itérations. Trois clusters se sont formés, à des distances plus grandes que $d$.}
+\label{random5}
+\end{figure}
 
-Nous sommes partis d'une des situations simples que nous avions trouvé, les agent équidistants, et nous avons ajouté du ``bruit''. Nous avons donc prouvé le théorème suivant:
+\item Cependant, il est possible que les couples d'agents successifs ne se séparent jamais d'une distance de plus de $d$. Par exemple, prenons $n$ suffisamment grand, et plaçons des $n$ agents sur les racines $n$-ièmes de l'unité. Chaque agents sera influencé par ses voisins, mais les influences se compensent exactement, de sorte que la distribution est stable. Nous avons ici ce que nous appelons une convergence non standard, c'est-à-dire que des agents restent sous influence mutuelle, bien qu'ils ne convergent pas vers la même position. 
+En modifiant légèrement et aléatoirement la position initiale des agents par rapport à cette distribution, nous avons constaté numériquement que cette distribution est stable. Nous montrons une de ces simulations numériques dans les figures \ref{racinesbefore} et \ref{racines1000}, ainsi qu'une preuve théorique de ce résultat dans le théorème \ref{convergence-non-standard}. 
+
+\begin{figure}
+\center
+\includegraphics[scale=0.5]{racinesbefore.png}
+\caption{Une distribution proche des racines 10-ième de l'unité, sur les cercle trigonométrique, avec $d=1$.}
+\label{racinesbefore}
+\center
+\includegraphics[scale=0.5]{racines1000.png}
+\caption{Le même système, après 1000 itérations.}
+\label{racines1000}
+\end{figure}
+
+\end{itemize}
+
+Nous avons de plus constaté qu'en choisissant les positions initiales des agents indépendamment et uniformément sur le cercle, on obtenait nettement plus fréquemment une convergence standard. 
+
+Pour continuer a nous familiariser avec le modèle, cette fois d'un point de vue théorique, nous avons essayé de démontrer un résultat ``préliminaire'' : l'ensemble des situations initiales qui conduisent à une convergence non standard n'est pas de mesure nulle (en supposant la distribution de probabilité obtenue en tirant uniformément et indépendamment chaque agent). Cela nous a garanti que les situations que nous voulions analyser ne sont pas négligeables.
+
 \begin{theorem}
-Considérons $n$ agents placés sur le cercle de rayon 1 et soit $d$ la distance d'influence. La position de l'agent $i$ est $x_i = r_i + b_i$ où $r_i = \frac{i}{n} 2 \pi$ et $b_i \in [-\epsilon, +\epsilon]$. Alors la convergence sera non standard.
+\label{convergence-non-standard}
+Considérons $n$ agents placés sur le cercle de rayon 1 et soit $d$ la distance d'influence. La position de l'agent $i$ est $x_i = r_i + b_i$ où $r_i = \frac{i}{n} 2 \pi$ et $b_i \in [-\epsilon, +\epsilon]$. Alors la convergence sera non standard pour un $\epsilon$ suffisamment petit. 
 \end{theorem}
 
 Nous avons supposé que le bruit n'arrive pas à changer les relations d'influence entre les agents. On peut formaliser cela comme une contrainte sur $\epsilon$ : pour aucun $k$ on peut avoir $\frac{k}{n} 2 \pi - \epsilon < d < \frac{k}{n} 2 \pi + \epsilon$.
@@ -67,10 +112,10 @@ x'_i &= x_i + \frac{1}{2k+1} \left( \sum_{j=1}^k (x_{i-j} - x_i) + \sum_{j=1}^k 
 \end{split}
 \end{equation*}
 
-On voit donc que le nouveau bruit de l'agent $i$ est la moyenne des bruits des agents voisins. En itérant le raisonnement on obtient qu'à tout moment le bruit d'un agent est une combinaison linéaire des bruits initiales de tous les agents. On peut donc fixer un $j$ et voir comment évoluent les coefficients de $b_j$ dans les combinaisons linéaires de tous les agents. Au début ils sont tous zéro sauf celui de l'agent $j$ lui-même. A l’étape suivante on voit que les $2k+1$ voisins de $j$ (y compris $j$) ont ce coefficient à $\frac{1}{2k+1}$. La somme donc reste 1. En fait c'est une propriété qui vaut pour toute étape, car chacun des $2k+1$ voisins d'un agent a lui aussi $2k+1$ voisins. Cela nous permet de considérer ces coefficients comme une distribution de probabilité et ensuite de voir l’évolution du système comme une chaîne de Markov. Cette chaîne est irréductible, apériodique et, en étant ses états finis, récurrente positive. Elle converge donc vers une distribution stationnaire, qui est la distribution uniforme. Le bruit initial de l'agent $j$ donc se disperse en égal mesure entre tous les agents. A la limite donc tous les agents auront le même bruit qui sera la moyenne des bruits initiaux.
+On voit donc que le nouveau bruit de l'agent $i$ est la moyenne des bruits des agents voisins. En itérant le raisonnement on obtient qu'à tout moment le bruit d'un agent est une combinaison linéaire des bruits initiales de tous les agents. On peut donc fixer un $j$ et voir comment évoluent les coefficients de $b_j$ dans les combinaisons linéaires de tous les agents. Au début ils sont tous zéro sauf celui de l'agent $j$ lui-même. A l’étape suivante on voit que les $2k+1$ voisins de $j$ (y compris $j$) ont ce coefficient à $\frac{1}{2k+1}$. La somme donc reste 1. En fait c'est une propriété qui vaut pour toute étape, car chacun des $2k+1$ voisins d'un agent a lui aussi $2k+1$ voisins. Cela nous permet de considérer ces coefficients comme une distribution de probabilité et ensuite de voir l’évolution du système comme une chaîne de Markov. Cette chaîne est irréductible, apériodique et, en étant ses états finis, récurrente positive. Elle converge donc vers une distribution stationnaire, qui est la distribution uniforme. Le bruit initial de l'agent $j$ donc se disperse en proportions égales entre tous les agents. A la limite donc tous les agents auront le même bruit qui sera la moyenne des bruits initiaux.
 \end{proof}
 
-En suite nous avons abordé le théorème principal : il y a toujours convergence, soit standard soit non standard. Le théorème précédent en était un cas particulier mais nous ne pouvions pas utiliser les mêmes techniques sans modification parce que plusieurs hypothèses n’étaient plus valides. En particulier la somme des coefficients de la contribution de l'agent $j$ dans la position des autres agents ne reste pas 1. Et aussi la relation d'influence peut changer à chaque étape, vu que des agents peuvent s'approcher ou s’éloigner et donc entrer ou sortir l'un de l'influence de l'autre. Cela dit que la chaîne de Markov ne serait pas homogène.
+Par la suite nous avons abordé le théorème principal : il y a toujours convergence, soit standard soit non standard. Le théorème précédent en était un cas particulier mais nous ne pouvions pas utiliser les mêmes techniques sans modification parce que plusieurs hypothèses n’étaient plus valides. En particulier la somme des coefficients de la contribution de l'agent $j$ dans la position des autres agents ne reste pas 1. Et aussi la relation d'influence peut changer à chaque étape, vu que des agents peuvent s'approcher ou s’éloigner et donc entrer ou sortir l'un de l'influence de l'autre. Cela dit que la chaîne de Markov n'est pas homogène.
 
 Nous avons quand même essayé de nous ramener à la situation précédente en supposant que d'un certain point en avant la relation d'influence arrête de changer. Cela implique aussi que la matrice de transition ne change plus, et donc nous pouvons l'analyser. Elle est une matrice stochastique, parce que la somme des poids des arêtes qui entrent dans un agent vaut 1 (les $n$ arêtes ont toutes le même poids, qui est $\frac{1}{n}$). Les arêtes sortantes, au contraire, n'ont pas forcement somme 1. Donc, même si cette matrice est stochastique, on ne peut pas l'utiliser pour modéliser une chaîne de Markov parce que on l'utiliserait ``dans le mauvais sens'' : elle est stochastique gauche (par colonnes) mais on la multiplierait par un vecteur ligne. En tout cas, en étant stochastique, nous sachons que sa puissance $n$-ieme a une limite, et donc de cela nous déduisons que aussi les positions des agents convergent (le vecteur qui les décrit est obtenu de la multiplication de cette matrice et du vecteur des positions à l'instant auquel la relation d'influence se stabilise).
 
